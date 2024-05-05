@@ -5,8 +5,12 @@ const userValidator = require('./validator');
 class UserController {
     async createUser(req, res) {
         try {
+            const file = req.file;
+
+            console.log("file -----",file);
+
             await userValidator.validateCreateUser(req.body);
-            const result = await UserHelper.createUser(req.body);
+            const result = await UserHelper.createUser(req.body, file);
             response.sendSuccess(res, result);
         } catch (error) {
             response.sendError(res, error);

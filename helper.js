@@ -1,21 +1,26 @@
 const db = require("./database");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 class UserHelper {
-  async createUser(body) {
-    const { name, email, password, age, phone } = body;
+  async createUser(body, file) {
     try {
+      const { name, email, password, age, phone } = body;
+
+      console.log("file ***",file);
+
+      const fileData = file.originalname;
+
       const [result] = await db.execute(
-        "INSERT INTO users (name, email, password, age, phone) VALUES (?, ?, ?, ?, ?)",
-        [name, email, password, age, phone]
+        "INSERT INTO users (name, email, password, age, phone, profile_pic) VALUES (?, ?, ?, ?, ?, ?)",
+        [name, email, password, age, phone, fileData]
       );
 
       const insertId = result.insertId;
       const [rowsData] = await db.execute(
-        "SELECT * FROM users WHERE user_id = ?",
+        "SELECT * FROM users WHERE id = ?",
         [insertId]
       );
-      
+
       console.log("Inserted data-----", rowsData);
       return rowsData;
     } catch (error) {
@@ -25,25 +30,26 @@ class UserHelper {
 
   async loginUser(body) {
     try {
-    const [user] = await db.execute(
-        'SELECT * FROM users WHERE email = ? AND password = ?', [body.email, body.password]
-    );
+      const [user] = await db.execute(
+        "SELECT * FROM users WHERE email = ? AND password = ?",
+        [body.email, body.password]
+      );
 
-    if (!user.length) {
-        throw new Error('Invalid credentials');
-    }
+      if (!user.length) {
+        throw new Error("Invalid credentials");
+      }
 
-    const userData = {
+      const userData = {
         user_id: user[0].user_id,
-        email: user[0].email
-    };
-    const token = jwt.sign(userData, 'secret123', { expiresIn: '24h' });
-    return token;
-  }catch(error){
-    console.log("error---", error);
-    throw error;
+        email: user[0].email,
+      };
+      const token = jwt.sign(userData, "secret123", { expiresIn: "24h" });
+      return token;
+    } catch (error) {
+      console.log("error---", error);
+      throw error;
+    }
   }
-}
 
   async getAllUsers() {
     try {
